@@ -54,7 +54,7 @@ async function apiRequest(path, { method = 'GET', body, authenticated = false } 
     if (!response.ok) throw new Error(`API request failed with status ${response.status}.`);
   }
 
-  if (response.status === 503) {
+  if (response.status === 503 || response.status === 404) {
     throw new ApiUnavailableError(result.error || 'The database service is unavailable.');
   }
   if (!response.ok) {
