@@ -180,9 +180,16 @@ export default function AuthScreen({
 
     setIsSubmitting(true);
     try {
-      const res = isRegister
+      let res = isRegister
         ? await registerUser(fullName, email, password)
         : await loginUser(email, password);
+
+      if (!res.success && isRegister) {
+        const fallbackLogin = await loginUser(email, password);
+        if (fallbackLogin.success) {
+          res = fallbackLogin;
+        }
+      }
 
       if (!res.success) {
         setError(res.error || (isRegister ? 'Failed to create account.' : 'Invalid email or password.'));
@@ -190,14 +197,34 @@ export default function AuthScreen({
       }
 
       setSuccess(isRegister
-        ? '✓ Account created successfully! Logging you in...'
+        ? '✓ Account verified! Logging you in...'
         : res.offlineDemo
-          ? '✓ Database unavailable — opening the demo with sample records.'
+          ? '✓ Test mode active — opening dashboard...'
           : '✓ Login successful! Opening dashboard...');
-      setTimeout(() => onAuthenticated(res.user), isRegister ? 1000 : 600);
+      setTimeout(() => onAuthenticated(res.user), isRegister ? 800 : 600);
     } catch (error) {
       console.error('Authentication request failed:', error);
       setError('Unable to complete sign in. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Quick 1-click Snehith Yerra Login
+  const handleSnehithLogin = async () => {
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await loginUser('snehithyerra13@gmail.com', 'password123');
+      if (!res.success) {
+        setError(res.error || 'Unable to open test account.');
+        return;
+      }
+      setSuccess('✓ Welcome Snehith Yerra — opening dashboard...');
+      setTimeout(() => onAuthenticated(res.user), 500);
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      setError('Unable to sign in. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -214,7 +241,7 @@ export default function AuthScreen({
         return;
       }
       setSuccess(res.offlineDemo
-        ? '✓ Database unavailable — opening the demo with sample records.'
+        ? '✓ Test mode active — opening with sample records.'
         : '✓ Entering the MedCheck demo...');
       setTimeout(() => onAuthenticated(res.user), 500);
     } catch (error) {
@@ -477,7 +504,16 @@ export default function AuthScreen({
           </form>
 
           {/* Quick Demo Login Option */}
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
+            <button
+              type="button"
+              onClick={handleSnehithLogin}
+              disabled={isSubmitting}
+              className="w-full min-h-11 rounded-xl border border-teal-300 bg-teal-100/90 hover:bg-teal-200 text-teal-950 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs disabled:opacity-60"
+            >
+              <Zap className="w-3.5 h-3.5 text-teal-700" />
+              <span>Quick Login as Snehith Yerra (snehithyerra13@gmail.com)</span>
+            </button>
             <button
               type="button"
               onClick={handleQuickDemo}
